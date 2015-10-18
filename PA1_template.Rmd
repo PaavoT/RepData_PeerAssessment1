@@ -84,7 +84,7 @@ step_median <- median(steps_per_day$steps)
 step_median
 ```
 
-The descriptive values for steps taken are
+The measures of central tendency for steps taken are
 
  - the mean is `r format(step_mean,sigits=2)` and 
  - the median is `r step_median`.
@@ -114,6 +114,91 @@ avg_steps_per_interval[which.max(avg_steps_per_interval$steps), ]
 
 ## Imputing missing values
 
+**1. Calculate and report the total number of missing values in the dataset**
+```{r}
+NA_count <- sum(is.na(activity))
+NA_count
+```
+
+There are `r NA_count` missing values.
+
+
+**2. Devise a strategy for filling in all of the missing values in the dataset. **
+
+Replace the NAs with '5-minute interval averages'
+```{r}
+activity_imp <- merge(activity, avg_steps_per_interval, by = "interval", suffixes = c("", ".na"))
+# Create an index list of NAs
+na_ind <- is.na(activity_imp$steps)
+# Replace NAs
+activity_imp$steps[na_ind] <- activity_imp$steps.na[na_ind]
+```
+
+
+**3. Create a new dataset that is equal to the original dataset but with the missing data filled in.**
+```{r}
+# Remove column 'steps.na' (the sixth colomn)
+activity_imp <- activity_imp[, c(1:5)]
+str(activity_imp)
+```
+
+**4. Make a histogram of the total number of steps taken each day and Calculate and report the mean and median total number of steps taken per day.**
+
+```{r}
+steps_per_day_imp <- aggregate(steps ~ date, data=activity_imp, sum)
+hist(steps_per_day$steps, breaks=12, xlab="Steps", main="Steps per day (Imputing NAs")
+
+step_mean_imp <- mean(steps_per_day_imp$steps)
+step_mean_imp
+
+step_median_imp <- median(steps_per_day_imp$steps)
+step_median_imp
+
+# steps before (with NAs)
+step_total
+# steps after (NAs replaces wit averages)
+step_total_imp <- sum(steps_per_day_imp$steps)
+step_total_imp
+
+# difference is steps 
+more_steps = (step_total_imp - step_total)
+more_steps
+str_more_steps = sprintf("%.0f", more_steps)
+
+```
+
+
+After imputing missing values, the measures of central tendency for steps taken are
+
+ - the mean is `r format(step_mean_imp,sigits=2)` (*before `r format(step_mean,sigits=2)`*) and
+ - the median is `r format(step_median_imp,sigits=2)` (*before `r format(step_median,sigits=2)`*).
+
+
+The impact of imputing missing data **did not change the mean** and affected the **median only slightly**.
+
+However, replacing the NAs added the total number of steps taken with `r str_more_steps` steps.
 
 
 ## Are there differences in activity patterns between weekdays and weekends?
+
+
+**1. Create a new factor variable in the dataset with two levels - "weekday" and "weekend"**
+
+This was already done at the beginnig in the preprocessing phase; see variable 'is_weekend'. 
+
+**2. Make a panel plot containing a time series plot (i.e. type = "l") of the 5-minute interval and the average number of steps taken, averaged across all weekday days or weekend days.**
+
+
+
+```{r}
+par(mfrow = c(2, 1))
+for (is_we in c("weekend", "weekday")) {
+    steps.is_we <- aggregate(steps ~ interval, data = activity_imp, subset = activity_imp$is_weekend == 
+        is_we, FUN = mean)
+    plot(steps.is_we, type = "l", main = is_we)
+}
+
+```
+
+It seems that there is more activity on weekend than on weekdays. 
+Even though the subject get's up later he/she is more active during the day (and goes to bed a maybe a bit later than on weekdays).
