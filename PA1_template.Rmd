@@ -7,16 +7,110 @@ output:
 
 
 ## Loading and preprocessing the data
+Load the data.
 
+```{r}
+# Unzip and read the data file.
+activity <- read.csv(unzip("activity.zip"))
+
+```
+
+Preproces the data.
+
+- Create a new factor variable 'is weekend' in the dataset with two levels - "weekday" and "weekend" indicating whether a given date is a weekday or weekend day.
+- For checking purposes, add a new variable 'day of week' with seven levels from Sunday to Saturday.
+
+```{r}
+# We want to see the day of the week in English: locale "C" reflects North-American usage.
+Sys.setlocale(category = "LC_ALL", locale = "C")
+
+# Create a factor variable 'is weekend' in the dataset with two levels - "weekday" and "weekend".
+#   In English the day of the week starting with character S are Saturday and
+#   Sunday - they mark the weekend (and the rest are weekdays).
+#   The 'starting with' is notated with character circumflex accent (^).
+activity$is_weekend <- as.factor(as.numeric(as.factor(grepl('^S', as.factor(weekdays(as.Date(activity$date)))))))
+levels(activity$is_weekend) <- c("weekday", "weekend")
+
+# For checking purposes only, add a new variable 'day of week' with seven levels from Sunday to Saturday.
+activity$weekday <- as.factor(weekdays(as.Date(activity$date)))
+# .. and order them starting from Sunday (the US way).
+activity$weekday <- factor(activity$weekday, 
+  levels = c("Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"))
+```
+
+###Result dataset
+Let's have a look at our dataset 'activity'.
+
+```{r}
+str(activity)
+```
+
+A sample of the data .
+```{r}
+activity[9502:9508,]
+```
 
 
 ## What is mean total number of steps taken per day?
+
+**1. Calculate the total number of steps taken per day.**
+
+```{r}
+# With function aggregate, the default is to ignore missing values in the given variables.
+steps_per_day <- aggregate(steps ~ date, data=activity, sum)
+str(steps_per_day)
+
+step_total <- sum(steps_per_day$steps)
+step_total
+
+```
+
+The total number of steps taken per day is `r step_total`.
+
+
+
+**2. Make a histogram of the total number of steps taken each day.**
+```{r}
+hist(steps_per_day$steps, breaks=12, xlab="Steps", main="Steps per day")
+```
+
+**3. Calculate and report the mean and median of the total number of steps taken per day.**
+
+```{r}
+step_mean <- mean(steps_per_day$steps)
+step_mean
+
+step_median <- median(steps_per_day$steps)
+step_median
+```
+
+The descriptive values for steps taken are
+
+ - the mean is `r format(step_mean,sigits=2)` and 
+ - the median is `r step_median`.
 
 
 
 ## What is the average daily activity pattern?
 
+**1. Make a time series plot of the 5-minute interval and the average number of steps taken, averaged across all days.**
 
+```{r}
+# With function aggregate, the default is to ignore missing values in the given variables.
+avg_steps_per_interval <- aggregate(steps ~ interval, data=activity, mean)
+str(avg_steps_per_interval)
+plot(avg_steps_per_interval, type="l", xlab="5-minute interval", main="Average daily activity")
+interval_containing_max_steps <- avg_steps_per_interval[which.max(avg_steps_per_interval$steps), ]
+max_text <- paste("The maximun steps is", as.character(sprintf("%.4f", interval_containing_max_steps$steps)), " at interval", as.character(interval_containing_max_steps$interval))
+text(c(1600),c(206),labels=max_text)
+```
+
+**2. Which 5-minute interval, on average across all the days in the dataset, contains the maximum number of steps?**
+
+```{r}
+avg_steps_per_interval[which.max(avg_steps_per_interval$steps), ]
+```
+`r max_text`.
 
 ## Imputing missing values
 
