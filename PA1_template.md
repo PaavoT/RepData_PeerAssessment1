@@ -311,7 +311,7 @@ However, replacing the NAs added the total number of steps taken with 86130 step
 
 This was already done at the beginnig in the preprocessing phase; see variable 'is_weekend'. 
 
-**2. Make a panel plot containing a time series plot (i.e. type = "l") of the 5-minute interval and the average number of steps taken, averaged across all weekday days or weekend days.**
+**2. Make a panel plot containing a time series plot of the 5-minute interval and the average number of steps taken, averaged across all weekday days or weekend days.**
 
 
 
